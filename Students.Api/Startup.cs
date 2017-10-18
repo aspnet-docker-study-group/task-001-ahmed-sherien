@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Students.Api.Infrastructure;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Students.Api
 {
@@ -23,7 +24,20 @@ namespace Students.Api
             {
                 options.UseSqlServer(Configuration.GetConnectionString("StudentsContext"));
             });
+
             services.AddMvc();
+
+            services.AddSwaggerGen(options =>
+            {
+                options.DescribeAllEnumsAsStrings();
+                options.SwaggerDoc("v1", new Info
+                {
+                    Title = "AspNetDockerStudyGroup - Students API",
+                    Version = "v1",
+                    Description = "The Students API",
+                    TermsOfService = "None"
+                });
+            });
 
             var serviceProvider = services.BuildServiceProvider();
 
@@ -31,6 +45,7 @@ namespace Students.Api
 
             StudentsContextInitializer.InitializeDatabase(context);
             StudentsContextSeeder.SeedData(context);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,7 +56,16 @@ namespace Students.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMvc();
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Students API V1");
+            });
+
+            app.UseMvcWithDefaultRoute();
         }
     }
 }
